@@ -25,11 +25,15 @@ module.exports = {
 
     getCoursewithId: async (req, res, next) => {
         try {
-            const { id } = req.params;
-            const courseData = await courseService.fetchCourseWithId(id);
-            res.json(courseData);
+            const { courseId } = req.params;
+            const courseData = await courseService.fetchCourseWithId(courseId);
+            if (courseData) {
+                res.json(courseData);
+            } else {
+                throw `Course with id: ${courseId} not found!`;
+            }
         } catch (error) {
-            res.status(500).json({ error: error });
+            res.status(404).json({ error: error });
         }
     },
 
@@ -54,34 +58,25 @@ module.exports = {
 
     deleteCourse: async (req, res, next) => {
         try {
-            const { id } = req.params;
-            const deletedCourseData = await courseService.removeCourse(id);
-            res.json(deletedCourseData);
-        } catch (error) {
-            res.status(500).json({ error: error });
-        }
-    },
-
-    studentEnrolledByCourses: async (req, res, next) => {
-        try {
-            const studentEnrolled = await courseService.addCourseIntoStudent(req.body);
-            res.json(studentEnrolled);
-        } catch (error) {
-            res.status(500).json({ error: error });
-        }
-    },
-
-    getCourseEnrolledIntoStudent: async (req, res, next) => {
-        try {
-            const { id } = req.params;
-            let studentDetails = await courseService.fetchCourseEnrolledIntoStudent(id);
-            if (studentDetails) {
-                res.json(studentDetails);
+            const { courseId } = req.params;
+            const deletedCourseData = await courseService.removeCourse(courseId);
+            if (deletedCourseData) {
+                res.json(deletedCourseData);
             } else {
-                throw "Student Details not found!";
+                throw `Course with id: ${id} not found!`;
             }
         } catch (error) {
-            res.status(404).json({ error: error })
+            res.status(404).json({ error: error });
         }
-    }
+    },
+
+    coursesEnrolledByStudent: async (req, res, next) => {
+        try {
+            const studentEnrolledIntoCourse = await courseService.addStudentIntoCourse(req.body);
+            res.json(studentEnrolledIntoCourse);
+        } catch (error) {
+            res.status(500).json({ error: error });
+        }
+    },
+
 }

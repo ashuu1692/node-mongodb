@@ -8,7 +8,7 @@ router.route('/postStudent')
 router.route('/getStudent')
     .get(studentController.getStudent);
 
-router.route('/getStudent/:id')
+router.route('/getStudent/:enrollment')
     .get(studentController.getStudentWithId);
 
 router.route('/updateStudent/:id')
@@ -17,14 +17,9 @@ router.route('/updateStudent/:id')
 router.route('/deleteStudent/:enrollment')
     .delete(studentController.deleteStudent);
 
-router.route('/postStudentInCourse')
+router.route('/coursesEnrolledByStudent')
     .post(studentController.coursesEnrolledByStudent);
 
-// router.route('/getStudentEnrolledIntoCourse/:id')
-//     .get(studentController.getStudentEnrolledIntoCourse);
-
-// router.route('/deleteStudentFromCourse/:courseId/:enrollment')
-//     .delete(studentController.deleteStudentFromCourses);
 
 
 module.exports = router;

@@ -17,17 +17,33 @@ module.exports = {
 
     fetchStudent: async () => {
         try {
-            const allStudent = await StudentModel.find();
+            const allStudent = await StudentModel.find().select('-_id enrollment studentname courseEnrolled');
             return allStudent;
         } catch (error) {
             console.log(`Could not fetch students ${error}`);
         }
     },
 
-    fetchStudentWithId: async (id) => {
+    fetchStudentWithId: async (enrollment) => {
         try {
-            const singleIdResponse = await StudentModel.findOne({ enrollment: id });
-            return singleIdResponse;
+            let studentResponseObj = { };
+
+            let studentDetails = await StudentModel.findOne({ enrollment: enrollment });
+            studentResponseObj.enrollment = studentDetails.enrollment;
+            studentResponseObj.studentName = studentDetails.studentName;
+            // console.log(studentResponseObj)
+
+            if(studentDetails) {
+                let courseData = new Array();
+                for (let value of studentDetails.courseEnrolled) {
+                    let courseDetails = await CourseModel.findOne({ courseId: value }).select('-_id courseId courseName');
+                    courseData.push(courseDetails);
+
+                }
+                // console.log(courseData)
+                studentResponseObj.courseEnrolled = courseData;
+            }
+            return studentResponseObj;
         } catch (error) {
             console.log(`Student not found. ${error}`);
         }
@@ -88,14 +104,14 @@ module.exports = {
                     }
                 }
             }
-            // const deletedResponse = await StudentModel.findOneAndDelete({ enrollment: id });
-            // return deletedResponse;
+            const deletedResponse = await StudentModel.findOneAndDelete({ enrollment: enrollment });
+            return deletedResponse;
         } catch (error) {
             console.log(`Could not delete student ${error}`);
         }
     },
 
-    addStudentIntoCourse: async (data) => {
+    addCourseIntoStudent: async (data) => {
         try {
             let updatedStudentDetails;
             const { enrollment, courseId } = data;
@@ -146,58 +162,10 @@ module.exports = {
                         )
                 }
             }
-
             return updatedStudentDetails;
         } catch (error) {
             console.log(error);
         }
     },
 
-    // fetchStudentEnrolledIntoCourse: async (id) => {
-    //     try {
-    //         const singleCourseResponse = await CourseModel.findOne({ courseId: id });
-    //         return singleCourseResponse;
-    //     } catch (error) {
-    //         console.log(`Data not found. ${error}`);
-    //     }
-    // },
-
-    // removeStudentFromCourse: async (params) => {
-    //     try {
-    //         const { courseId, enrollment } = params;
-    //         // console.log(params);
-    //         // console.log(courseId, enrollment);
-    //         let courseDetails = await CourseModel.findOne({ courseId: courseId });
-    //         console.log(courseDetails);
-    //         if (courseDetails) {
-    //             if (courseDetails.studentEnrolled) {
-    //                 let arr = courseDetails.studentEnrolled;
-    //                 if (arr.includes(enrollment)) {
-
-    //                     arr.remove(enrollment)
-    //                 }
-    //                 console.log(arr);
-    //                 let updatedCourseDetails = await new Promise((resolve, reject) => {
-    //                     CourseModel.findOneAndUpdate(
-    //                         { courseId: courseId },
-    //                         {
-    //                             "studentEnrolled": arr
-    //                         },
-    //                         { upsert: true, new: true },
-    //                         (error, doc) => {
-    //                             if (error) {
-    //                                 console.log(JSON.stringify(error));
-    //                                 return reject(error);
-    //                             }
-    //                             resolve(doc);
-    //                         }
-    //                     )
-    //                 })
-    //                 return updatedCourseDetails;
-    //             }
-    //         }
-    //     } catch (error) {
-    //         console.log(error);
-    //     }
-    // }
 }

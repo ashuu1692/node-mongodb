@@ -8,20 +8,19 @@ router.route('/postCourse')
 router.route('/getCourse')
     .get(courseController.getCourse);
 
-router.route('/getCourse/:id')
+router.route('/getCourse/:courseId')
     .get(courseController.getCoursewithId);
 
 router.route('/updateCourse/:id')
     .patch(courseController.updateCourse);
 
-router.route('/deleteCourse/:id')
+router.route('/deleteCourse/:courseId')
     .delete(courseController.deleteCourse);
 
-router.route('/postCourseIntoStudent')
-    .post(courseController.studentEnrolledByCourses);
+router.route('/coursesEnrolledByStudent')
+    .post(courseController.coursesEnrolledByStudent);
 
-router.route('/getCourseEnrolledIntoStudent/:id')
-    .get(courseController.getCourseEnrolledIntoStudent);
+
 
 
 module.exports = router;

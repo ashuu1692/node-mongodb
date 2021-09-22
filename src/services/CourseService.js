@@ -24,10 +24,23 @@ module.exports = {
         }
     },
 
-    fetchCourseWithId: async (id) => {
+    fetchCourseWithId: async (courseId) => {
         try {
-            const singleIdResponse = await CourseModel.findOne({ courseId: id });
-            return singleIdResponse;
+            // console.log(courseId)
+            let courseResponseObj = {};
+            let courseDetails = await CourseModel.findOne({ courseId: courseId });
+            courseResponseObj.courseId = courseDetails.courseId;
+            courseResponseObj.courseName = courseDetails.courseName;
+
+            if (courseDetails) {
+                let studentData = new Array();
+                for (let value of courseDetails.studentEnrolled) {
+                    let studentDetails = await StudentModel.findOne({ enrollment: value }).select('-_id enrollment studentName');
+                    studentData.push(studentDetails);
+                }
+                courseResponseObj.studentEnrolled = studentData;
+            }
+            return courseResponseObj;
         } catch (error) {
             console.log(`Course not found. ${error}`);
         }
@@ -60,24 +73,49 @@ module.exports = {
         }
     },
 
-    removeCourse: async (id) => {
+    removeCourse: async (courseId) => {
         try {
-            const deletedResponse = await CourseModel.findOneAndDelete({ courseId: id });
+            let response = await CourseModel.findOne({ courseId: courseId });
+            console.log(response.studentEnrolled);
+            if (response) {
+                for (let value of response.studentEnrolled) {
+                    let studentDetails = await StudentModel.findOne({ enrollment: value });
+                    console.log(studentDetails);
+                    if (studentDetails) {
+                        console.log(`-----${studentDetails.courseEnrolled}`)
+                        if (studentDetails.courseEnrolled) {
+                            let arr = studentDetails.courseEnrolled;
+                            if (arr.includes(courseId)) {
+                                console.log(courseId);
+                                arr.remove(courseId);
+                            }
+                            console.log(arr);
+                            await StudentModel.findOneAndUpdate(
+                                { enrollment: value },
+                                {
+                                    "courseEnrolled": arr
+                                },
+                                { upsert: true }
+                            );
+                        }
+                    }
+                }
+            }
+            const deletedResponse = await CourseModel.findOneAndDelete({ courseId: courseId });
             return deletedResponse;
         } catch (error) {
             console.log(`Could not delete course ${error}`);
         }
     },
 
-    addCourseIntoStudent: async (data) => {
+    addStudentIntoCourse: async (data) => {
         try {
             let updatedCourseDetails;
             const { courseId, enrollment } = data;
             // console.log(data);
             // console.log(courseId, enrollment);
-
             let courseDetails = await CourseModel.findOne({ courseId: courseId });
-            console.log(courseDetails);
+            // console.log(courseDetails);
             if (courseDetails) {
                 if (courseDetails.studentEnrolled) {
                     let arr = courseDetails.studentEnrolled;
@@ -127,12 +165,4 @@ module.exports = {
         }
     },
 
-    fetchCourseEnrolledIntoStudent: async (id) => {
-        try {
-            const singleStudentResponse = await StudentModel.findOne({ enrollment: id });
-            return singleStudentResponse;
-        } catch (error) {
-            console.log(`Data not found. ${error}`);
-        }
-    }
 }
