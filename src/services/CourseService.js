@@ -17,8 +17,23 @@ module.exports = {
 
     fetchCourse: async () => {
         try {
+            let response = [];
             const allCourse = await CourseModel.find();
-            return allCourse;
+            for (let courseDetails of allCourse) {
+                if(courseDetails) {
+                    let responseObj = {};
+                    let studentData = [];
+                    for (let studentDetails of courseDetails.studentEnrolled) {
+                        let allStudent = await StudentModel.findOne({ enrollment: studentDetails}).select('-_id enrollment studentName');
+                        studentData.push(allStudent)
+                    }
+                    responseObj.courseId = courseDetails.courseId;
+                    responseObj.courseName = courseDetails.courseName;
+                    responseObj.studentEnrolled = studentData;
+                    response.push(responseObj);
+                }
+            }
+            return response;
         } catch (error) {
             console.log(`Could not fetch courses ${error}`);
         }
@@ -165,4 +180,33 @@ module.exports = {
         }
     },
 
+    paginatedCourse: async (page, limit) => {
+        try {
+            let response = [];
+            if (page > 0) {
+                let startIndex = (page - 1) * limit;
+                // let endIndex = page * limit;
+                let resultedData = await CourseModel.find().limit(limit).skip(startIndex).select('-_id courseId courseName studentEnrolled');
+                for (let courseDetails of resultedData) {
+                    if(courseDetails) {
+                        let responseObj = {};
+                        let studentData = [];
+                        for (let studentDetails of courseDetails.studentEnrolled) {
+                            let allStudent = await StudentModel.findOne({ enrollment: studentDetails}).select('-_id enrollment studentName');
+                            studentData.push(allStudent)
+                        }
+                        responseObj.courseId = courseDetails.courseId;
+                        responseObj.courseName = courseDetails.courseName;
+                        responseObj.studentEnrolled = studentData;
+                        response.push(responseObj);
+                    }
+                }
+                return response;
+            } else {
+                return "Enter proper page number."
+            }
+        } catch (error) {
+            console.log(error);
+        }
+    },
 }

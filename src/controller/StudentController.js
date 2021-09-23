@@ -6,7 +6,7 @@ module.exports = {
             const studentData = await studentService.addStudent(req.body);
             res.json(studentData);
         } catch (error) {
-            res.status(500).json({ error: error });
+            res.status(409).json({ error: error });
         }
     },
 
@@ -16,7 +16,6 @@ module.exports = {
             if (!studentData) {
                 res.status(404).json("There are no students registered yet!");
             }
-            delete studentData._id;
             res.json(studentData);
         } catch (error) {
             res.status(500).json({ error: error })
@@ -76,6 +75,22 @@ module.exports = {
             res.status(500).json({ error: error });
         }
     },
+
+    paginateStudent: async (req, res, next) => {
+        try {
+            let page = parseInt(req.query.page);
+            let limit = parseInt(req.query.limit);
+            console.log(page, limit);
+            let paginatedStudent = await studentService.paginatedStudent(page, limit);
+            if (paginatedStudent) {
+                res.json(paginatedStudent);
+            } else {
+                throw "Data not found"
+            }
+        } catch (error) {
+            res.status(404).json({ error: error });
+        }
+    }
 
 
 }

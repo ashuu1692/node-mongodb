@@ -20,6 +20,9 @@ router.route('/deleteStudent/:enrollment')
 router.route('/coursesEnrolledByStudent')
     .post(studentController.coursesEnrolledByStudent);
 
+router.route('/paginateStudent')
+    .get(studentController.paginateStudent);
+
 
 
 module.exports = router;

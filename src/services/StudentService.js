@@ -17,8 +17,26 @@ module.exports = {
 
     fetchStudent: async () => {
         try {
-            const allStudent = await StudentModel.find().select('-_id enrollment studentname courseEnrolled');
-            return allStudent;
+            let response = [];
+            let allStudent = await StudentModel.find();
+            // console.log(allStudent);
+            for (let studentDetails of allStudent) {
+                if (studentDetails) {
+                    let responseObj = {};
+                    let courseData = [];
+                    for (let courseDetails of studentDetails.courseEnrolled) {
+                        // console.log(courseDetails);
+                        let allCourse = await CourseModel.findOne({ courseId: courseDetails }).select('-_id courseId courseName');
+                        courseData.push(allCourse);
+                        // console.log(courseData);
+                    }
+                    responseObj.enrollment = studentDetails.enrollment;
+                    responseObj.studentName = studentDetails.studentName;
+                    responseObj.courseEnrolled = courseData;
+                    response.push(responseObj);
+                }
+            }
+            return response;
         } catch (error) {
             console.log(`Could not fetch students ${error}`);
         }
@@ -26,14 +44,13 @@ module.exports = {
 
     fetchStudentWithId: async (enrollment) => {
         try {
-            let studentResponseObj = { };
-
+            let studentResponseObj = {};
             let studentDetails = await StudentModel.findOne({ enrollment: enrollment });
             studentResponseObj.enrollment = studentDetails.enrollment;
             studentResponseObj.studentName = studentDetails.studentName;
             // console.log(studentResponseObj)
 
-            if(studentDetails) {
+            if (studentDetails) {
                 let courseData = new Array();
                 for (let value of studentDetails.courseEnrolled) {
                     let courseDetails = await CourseModel.findOne({ courseId: value }).select('-_id courseId courseName');
@@ -154,15 +171,48 @@ module.exports = {
                     }
                     // console.log(arr);
                     await CourseModel.findOneAndUpdate(
-                            { courseId: courseId },
-                            {
-                                "studentEnrolled": arr
-                            },
-                            { upsert: true }
-                        )
+                        { courseId: courseId },
+                        {
+                            "studentEnrolled": arr
+                        },
+                        { upsert: true }
+                    )
                 }
             }
             return updatedStudentDetails;
+        } catch (error) {
+            console.log(error);
+        }
+    },
+
+    paginatedStudent: async (page, limit) => {
+        try {
+            let response = [];
+            if (page > 0) {
+                let startIndex = (page - 1) * limit;
+                // let endIndex = page * limit;
+                let resultedData = await StudentModel.find().limit(limit).skip(startIndex).select('-_id enrollment studentName courseEnrolled');
+                for (let studentDetails of resultedData) {
+                    if (studentDetails) {
+                        let responseObj = {};
+                        let courseData = [];
+                        for (let courseDetails of studentDetails.courseEnrolled) {
+                            // console.log(courseDetails);
+                            let allCourse = await CourseModel.findOne({ courseId: courseDetails }).select('-_id courseId courseName');
+                            courseData.push(allCourse);
+                            // console.log(courseData);
+                        }
+                        responseObj.enrollment = studentDetails.enrollment;
+                        responseObj.studentName = studentDetails.studentName;
+                        responseObj.courseEnrolled = courseData;
+                        response.push(responseObj)
+                        // console.log(responseObj);
+                    }
+                }
+                return response;
+            } else {
+                return "Enter proper page number."
+            }
         } catch (error) {
             console.log(error);
         }

@@ -20,7 +20,8 @@ router.route('/deleteCourse/:courseId')
 router.route('/coursesEnrolledByStudent')
     .post(courseController.coursesEnrolledByStudent);
 
-
+router.route('/paginateCourse')
+    .get(courseController.paginateCourse);
 
 
 module.exports = router;

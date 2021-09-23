@@ -79,4 +79,20 @@ module.exports = {
         }
     },
 
+    paginateCourse: async (req, res, next) => {
+        try {
+            let page = parseInt(req.query.page);
+            let limit = parseInt(req.query.limit);
+            console.log(page, limit);
+            let paginatedCourse = await courseService.paginatedCourse(page, limit);
+            if (paginatedCourse) {
+                res.json(paginatedCourse);
+            } else {
+                throw "Data not found!"
+            }
+        } catch (error) {
+            res.status(404).json({ error: error });
+        }
+    }
+
 }
